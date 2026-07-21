@@ -32,3 +32,4 @@ build/
 .vscode/
 **/demo
 .gitignore
+src/main/java/com/example/demo/**
