@@ -30,4 +30,4 @@ build/
 
 ### VS Code ###
 .vscode/
-!**/src/main/java/com/example/demo
+**/src/main/java/com/example/demo/**
