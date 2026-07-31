@@ -1,6 +1,6 @@
 package com.example.Ordering.menu;
 
-import com.example.Ordering.entity.Dish_Category;
+//import com.example.Ordering.entity.Dish_Category;
 import jakarta.persistence.Entity;
 import jakarta.persistence.Id;
 import jakarta.persistence.JoinColumn;
