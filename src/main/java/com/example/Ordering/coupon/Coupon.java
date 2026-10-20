@@ -8,18 +8,18 @@ import java.time.LocalDateTime;
 @Entity
 public class Coupon {
     @Id
-    private Long coupon_id;
-    private String coupon_code;
-    private Discount_Type discount_type;
-    private long discount_value;
-    private Long minimum_order;
+    private Long couponId;
+    private String couponCode;
+    private Discount_Type discountType;
+    private long discountValue;
+    private Long minimumOrder;
 
     private LocalDateTime startAt;
     private LocalDateTime expiry;
-    private boolean is_active;
+    private boolean active;
 
-    private Long total_discount_budget;
-    private Long number_of_token;
+    private Long totalDiscountBudget;
+    private Long numberOfToken;
     // maximum should be total / number and  if percentage is there
     // then like 50% upto 80rs like that coupon becomes
 

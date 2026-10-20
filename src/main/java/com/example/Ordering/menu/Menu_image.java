@@ -8,7 +8,7 @@ public class Menu_image {
     @Id
     private Long id;
 
-    private Byte[] image;
+//    private Byte[] image;
 
 
 }

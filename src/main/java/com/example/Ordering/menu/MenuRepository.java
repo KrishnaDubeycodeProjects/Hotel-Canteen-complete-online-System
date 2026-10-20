@@ -8,7 +8,7 @@ import java.util.List;
 @Repository
 public interface MenuRepository extends JpaRepository<Menu, Integer> {
 
-    List<Menu> findByQuantityGreaterThan(long quantity);
-
-    List<Menu> findByDescriptionContainingIgnoreCase(String keyword);
+//    List<Menu> findByQuantityGreaterThan(long quantity);
+//
+//    List<Menu> findByDescriptionContainingIgnoreCase(String keyword);
 }

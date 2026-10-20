@@ -10,9 +10,9 @@ import java.util.Optional;
 @Repository
 public interface CouponRepository extends JpaRepository<Coupon, Long> {
 
-    Optional<Coupon> findByCoupon_code(String couponCode);
+    Optional<Coupon> findByCouponCode(String couponCode);
 
-    List<Coupon> findByIs_activeTrue();
+    List<Coupon> findByActiveTrue();
 
     List<Coupon> findByExpiryBefore(LocalDateTime now);
 }

@@ -7,5 +7,5 @@ import java.util.Optional;
 
 @Repository
 public interface OrderDetailsRepository extends JpaRepository<Orders, Long> {
-    Optional<Orders> findByToken_number(String tokenNumber);
+    Optional<Orders> findBytokenNumber(String tokenNumber);
 }

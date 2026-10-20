@@ -11,12 +11,12 @@ public class Orders {
     @Id
     private Long id;
 
-    private String token_number;
+    private String tokenNumber;
 
-    private String qr_data;
-       private Long Total;
-    private int number_of_times_user_tried_payment;
+    private String qrData;
+    private Long total;
+    private int numberOfTimesUserTriedPayment;
 
-    private LocalDateTime created_at;
+    private LocalDateTime createdAt;
 
 }
