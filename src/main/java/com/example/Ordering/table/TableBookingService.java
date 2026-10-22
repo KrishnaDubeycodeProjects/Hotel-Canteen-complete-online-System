@@ -7,11 +7,16 @@ import org.springframework.stereotype.Service;
 
 import java.time.Duration;
 import java.time.LocalDate;
+import org.springframework.transaction.annotation.Transactional;
+
+import java.time.Duration;
+import java.time.LocalDate;
 import java.time.LocalDateTime;
 import java.time.LocalTime;
 import java.util.List;
 
 @Service
+@Transactional(readOnly = true)
 public class TableBookingService {
 
     private final RestaurantTableRepository tableRepository;
@@ -27,10 +32,12 @@ public class TableBookingService {
         return tableRepository.findByActiveTrue();
     }
 
+    @Transactional
     public RestaurantTable createTable(RestaurantTable table) {
         return tableRepository.save(table);
     }
 
+    @Transactional
     public TableBooking bookTable(TableBookingRequestDTO request, User user) {
         if (request.getStartTime().isAfter(request.getEndTime()) || request.getStartTime().equals(request.getEndTime())) {
             throw new BadRequestException("Start time must be before end time");
@@ -93,6 +100,7 @@ public class TableBookingService {
         return bookingRepository.findByOrderByBookingDateDescStartTimeAsc();
     }
 
+    @Transactional
     public TableBooking cancelBooking(Long id, User user) {
         TableBooking booking = bookingRepository.findById(id)
                 .orElseThrow(() -> new ResourceNotFoundException("Booking not found with id: " + id));
@@ -104,6 +112,14 @@ public class TableBookingService {
         }
 
         booking.setStatus("CANCELLED");
+        return bookingRepository.save(booking);
+    }
+
+    @Transactional
+    public TableBooking completeBooking(Long id) {
+        TableBooking booking = bookingRepository.findById(id)
+                .orElseThrow(() -> new ResourceNotFoundException("Booking not found with id: " + id));
+        booking.setStatus("COMPLETED");
         return bookingRepository.save(booking);
     }
 }

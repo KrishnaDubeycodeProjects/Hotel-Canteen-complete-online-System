@@ -21,6 +21,7 @@ import java.util.concurrent.ThreadLocalRandom;
 import java.util.stream.Collectors;
 
 @Service
+@Transactional(readOnly = true)
 public class OrderService {
 
     private final OrderDetailsRepository orderRepository;
@@ -79,9 +80,14 @@ public class OrderService {
         int randomToken = ThreadLocalRandom.current().nextInt(1000, 9999);
         order.setTokenNumber("TKN-" + randomToken);
 
-        // Generate 4-digit OTP for counter / doorstep pickup
-        int randomOtp = ThreadLocalRandom.current().nextInt(1000, 9999);
-        order.setOtp_verify(String.valueOf(randomOtp));
+        // Generate 4-digit OTP ONLY for HOME_DELIVERY (not required for Dine-in or Takeaway)
+        boolean isHomeDelivery = "HOME_DELIVERY".equalsIgnoreCase(order.getDeliveryType()) || order.isDelivery();
+        if (isHomeDelivery) {
+            int randomOtp = ThreadLocalRandom.current().nextInt(1000, 9999);
+            order.setOtp_verify(String.valueOf(randomOtp));
+        } else {
+            order.setOtp_verify(null);
+        }
         order.setQrData("ORD-" + UUID.randomUUID().toString().substring(0, 8).toUpperCase());
         order.setPaymentAttempts(0);
         order.setNumberOfTimesUserTriedPayment(0);
@@ -285,20 +291,29 @@ public class OrderService {
     }
 
     @Transactional
-    public OrderDetailsResponseDTO verifyOtpAndComplete(Long orderId, String otp, User waiter) {
+    public OrderDetailsResponseDTO verifyOtpAndComplete(Long orderId, String otp, User staff) {
         Orders order = orderRepository.findById(orderId)
                 .orElseThrow(() -> new ResourceNotFoundException("Order not found with id: " + orderId));
 
-        if (order.getOtp_verify() == null || !order.getOtp_verify().trim().equals(otp.trim())) {
-            throw new BadRequestException("Invalid OTP verification code");
+        boolean isHomeDelivery = "HOME_DELIVERY".equalsIgnoreCase(order.getDeliveryType()) || order.isDelivery();
+
+        // OTP verification is only strictly required for Home Delivery
+        if (isHomeDelivery) {
+            if (order.getOtp_verify() == null || otp == null || !order.getOtp_verify().trim().equals(otp.trim())) {
+                throw new BadRequestException("Invalid delivery handover OTP code. Customer OTP is required to complete home delivery.");
+            }
         }
 
-        order.setWaiter(waiter);
+        order.setWaiter(staff);
         order.setOrder_status(Order_Status.Collected);
         order.setUpdatedAt(LocalDateTime.now());
 
         Orders saved = orderRepository.save(order);
-        addTrackEvent(saved, Order_Status.Collected, "Waiter " + waiter.getName(), "Order verified with OTP and marked as collected/delivered");
+        String staffTitle = staff != null ? (staff.getName() + " (" + staff.getRole() + ")") : "Staff";
+        String remark = isHomeDelivery ?
+                "Home delivery handover verified with customer OTP and completed" :
+                ("Order served directly to " + (order.getTableNumber() != null ? "Table " + order.getTableNumber() : "customer at counter"));
+        addTrackEvent(saved, Order_Status.Collected, staffTitle, remark);
 
         return mapToDto(saved);
     }
@@ -317,25 +332,25 @@ public class OrderService {
     }
 
     public List<OrderDetailsResponseDTO> getUserOrders(String phoneNumber) {
-        return orderRepository.findByUser_PhoneNumberOrderByCreatedAtDesc(phoneNumber).stream()
+        return orderRepository.findUserOrdersWithItems(phoneNumber).stream()
                 .map(this::mapToDto)
                 .collect(Collectors.toList());
     }
 
     public List<OrderDetailsResponseDTO> getAllOrders() {
-        return orderRepository.findByOrderByCreatedAtDesc().stream()
+        return orderRepository.findAllOrdersWithItems().stream()
                 .map(this::mapToDto)
                 .collect(Collectors.toList());
     }
 
     public List<OrderDetailsResponseDTO> getKitchenOrders() {
-        return orderRepository.findActiveKitchenOrders(Order_Status.Placed, Order_Status.Preparing).stream()
+        return orderRepository.findKitchenOrdersWithItems(Order_Status.Placed, Order_Status.Preparing).stream()
                 .map(this::mapToDto)
                 .collect(Collectors.toList());
     }
 
     public List<OrderDetailsResponseDTO> getWaiterOrders() {
-        return orderRepository.findReadyOrdersForWaiter(Order_Status.Ready).stream()
+        return orderRepository.findReadyOrdersWithItems(Order_Status.Ready).stream()
                 .map(this::mapToDto)
                 .collect(Collectors.toList());
     }
@@ -367,15 +382,26 @@ public class OrderService {
         }
 
         List<OrderDetailsResponseDTO.OrderTrackDTO> tracks = new ArrayList<>();
-        if (o.getTrackHistory() != null) {
-            for (Order_track t : o.getTrackHistory()) {
-                tracks.add(OrderDetailsResponseDTO.OrderTrackDTO.builder()
-                        .status(t.getOrderStatus())
-                        .updatedBy(t.getUpdatedBy())
-                        .remarks(t.getRemarks())
-                        .timestamp(t.getLastUpdateTime())
-                        .build());
+        try {
+            if (o.getTrackHistory() != null) {
+                for (Order_track t : o.getTrackHistory()) {
+                    tracks.add(OrderDetailsResponseDTO.OrderTrackDTO.builder()
+                            .status(t.getOrderStatus())
+                            .updatedBy(t.getUpdatedBy())
+                            .remarks(t.getRemarks())
+                            .timestamp(t.getLastUpdateTime())
+                            .build());
+                }
             }
+        } catch (Exception ignored) {
+        }
+
+        List<Integer> menuIds = new ArrayList<>();
+        try {
+            if (o.getMenuIds() != null) {
+                menuIds = new ArrayList<>(o.getMenuIds());
+            }
+        } catch (Exception ignored) {
         }
 
         return OrderDetailsResponseDTO.builder()
@@ -398,7 +424,7 @@ public class OrderService {
                 .refund_status(o.isRefund_status())
                 .refund_reason(o.getRefund_reason())
                 .items(items)
-                .menuIds(o.getMenuIds())
+                .menuIds(menuIds)
                 .tracking(tracks)
                 .build();
     }

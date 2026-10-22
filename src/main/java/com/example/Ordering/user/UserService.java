@@ -33,9 +33,7 @@ public class UserService {
         if (request.getPhoneNumber() == null || request.getPhoneNumber().trim().isEmpty()) {
             throw new BadRequestException("Phone number is required");
         }
-        if (request.getPassword() == null || request.getPassword().trim().length() < 4) {
-            throw new BadRequestException("Password must be at least 4 characters");
-        }
+        validateStrongPassword(request.getPassword());
 
         String phone = request.getPhoneNumber().trim();
         if (userRepository.existsByPhoneNumber(phone)) {
@@ -128,11 +126,31 @@ public class UserService {
             throw new BadRequestException("Invalid or expired OTP");
         }
 
+        validateStrongPassword(request.getNewPassword());
+
         user.setPassword(passwordEncoder.encode(request.getNewPassword()));
         userRepository.save(user);
         resetOtpStorage.remove(phone);
 
         return Map.of("message", "Password has been successfully updated. You can now login with your new password.");
+    }
+
+    public static void validateStrongPassword(String password) {
+        if (password == null || password.trim().length() < 8) {
+            throw new BadRequestException("Password must be at least 8 characters long");
+        }
+        if (!password.matches(".*[A-Z].*")) {
+            throw new BadRequestException("Password must contain at least one uppercase letter (A-Z)");
+        }
+        if (!password.matches(".*[a-z].*")) {
+            throw new BadRequestException("Password must contain at least one lowercase letter (a-z)");
+        }
+        if (!password.matches(".*\\d.*")) {
+            throw new BadRequestException("Password must contain at least one digit (0-9)");
+        }
+        if (!password.matches(".*[@$!%*?&_#^~+=\\-\\(\\)\\{\\}\\[\\]:;\"'<>,.\\/\\\\|].*")) {
+            throw new BadRequestException("Password must contain at least one special character (@$!%*?& etc.)");
+        }
     }
 
     public UserResponseDTO getUserDetails(String phoneNumber) {

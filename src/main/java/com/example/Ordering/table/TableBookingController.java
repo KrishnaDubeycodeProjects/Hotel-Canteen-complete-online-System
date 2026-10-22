@@ -25,6 +25,7 @@ public class TableBookingController {
     }
 
     @PostMapping("/api/tables")
+    @org.springframework.security.access.prepost.PreAuthorize("hasRole('ADMIN')")
     public ResponseEntity<RestaurantTable> createTable(@RequestBody RestaurantTable table) {
         return ResponseEntity.status(HttpStatus.CREATED).body(bookingService.createTable(table));
     }
@@ -41,6 +42,7 @@ public class TableBookingController {
     }
 
     @GetMapping("/api/table-bookings/all")
+    @org.springframework.security.access.prepost.PreAuthorize("hasAnyRole('ADMIN', 'WAITER')")
     public ResponseEntity<List<TableBooking>> getAllBookings() {
         return ResponseEntity.ok(bookingService.getAllBookings());
     }
@@ -49,5 +51,11 @@ public class TableBookingController {
     public ResponseEntity<TableBooking> cancelBooking(@PathVariable Long id,
                                                       @AuthenticationPrincipal User user) {
         return ResponseEntity.ok(bookingService.cancelBooking(id, user));
+    }
+
+    @PutMapping("/api/table-bookings/{id}/complete")
+    @org.springframework.security.access.prepost.PreAuthorize("hasAnyRole('ADMIN', 'WAITER')")
+    public ResponseEntity<TableBooking> completeBooking(@PathVariable Long id) {
+        return ResponseEntity.ok(bookingService.completeBooking(id));
     }
 }

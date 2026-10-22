@@ -16,6 +16,19 @@ public interface OrderDetailsRepository extends JpaRepository<Orders, Long> {
     List<Orders> findByUser_PhoneNumberOrderByCreatedAtDesc(String phoneNumber);
     List<Orders> findByOrderByCreatedAtDesc();
 
+    // Fast batch-joined queries to eliminate N+1 queries and accelerate DB performance
+    @Query("SELECT DISTINCT o FROM Orders o LEFT JOIN FETCH o.orderItems WHERE o.user.phoneNumber = :phone ORDER BY o.createdAt DESC")
+    List<Orders> findUserOrdersWithItems(@Param("phone") String phoneNumber);
+
+    @Query("SELECT DISTINCT o FROM Orders o LEFT JOIN FETCH o.orderItems ORDER BY o.createdAt DESC")
+    List<Orders> findAllOrdersWithItems();
+
+    @Query("SELECT DISTINCT o FROM Orders o LEFT JOIN FETCH o.orderItems WHERE o.order_status IN (:s1, :s2) ORDER BY o.createdAt ASC")
+    List<Orders> findKitchenOrdersWithItems(@Param("s1") Order_Status s1, @Param("s2") Order_Status s2);
+
+    @Query("SELECT DISTINCT o FROM Orders o LEFT JOIN FETCH o.orderItems WHERE o.order_status = :s ORDER BY o.createdAt ASC")
+    List<Orders> findReadyOrdersWithItems(@Param("s") Order_Status s);
+
     @Query("SELECT o FROM Orders o WHERE o.order_status = :status ORDER BY o.createdAt ASC")
     List<Orders> findByOrderStatus(@Param("status") Order_Status status);
 

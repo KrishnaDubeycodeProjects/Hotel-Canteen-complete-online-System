@@ -92,9 +92,26 @@ public class OrderDetailsController {
 
     @PostMapping("/{id}/verify-otp")
     public ResponseEntity<OrderDetailsResponseDTO> verifyOtpAndDeliver(@PathVariable Long id,
-                                                                       @RequestBody Map<String, String> body,
+                                                                       @RequestBody(required = false) Map<String, String> body,
                                                                        @AuthenticationPrincipal User waiter) {
-        String otp = body.get("otp");
+        String otp = body != null ? body.get("otp") : null;
         return ResponseEntity.ok(orderService.verifyOtpAndComplete(id, otp, waiter));
+    }
+
+    @PutMapping("/{id}/serve")
+    public ResponseEntity<OrderDetailsResponseDTO> serveOrderDirect(@PathVariable Long id,
+                                                                   @AuthenticationPrincipal User staff) {
+        return ResponseEntity.ok(orderService.verifyOtpAndComplete(id, null, staff));
+    }
+
+    @PutMapping("/{id}/cancel")
+    public ResponseEntity<OrderDetailsResponseDTO> cancelOrder(@PathVariable Long id,
+                                                               @RequestBody(required = false) Map<String, String> body,
+                                                               @AuthenticationPrincipal User user) {
+        String reason = (body != null && body.get("reason") != null) ? body.get("reason") : "Customer requested cancellation";
+        com.example.Ordering.payment.RefundRequestDTO refundRequest = new com.example.Ordering.payment.RefundRequestDTO();
+        refundRequest.setOrderId(id);
+        refundRequest.setReason(reason);
+        return ResponseEntity.ok(orderService.triggerRefund(refundRequest, user));
     }
 }

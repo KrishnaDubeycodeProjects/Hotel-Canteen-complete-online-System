@@ -21,6 +21,7 @@ public class User {
 
     private String email;
     private String name;
+    @com.fasterxml.jackson.annotation.JsonIgnore
     private String password;
 
     @Enumerated(EnumType.STRING)
