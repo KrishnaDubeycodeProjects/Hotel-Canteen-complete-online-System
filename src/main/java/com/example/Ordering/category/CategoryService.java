@@ -17,8 +17,14 @@ public class CategoryService {
 
 
     public CategoryResponseDto createCategory(CategoryRequestDto category) {
-        Category newCategory=mapToEntity(category);
-        Category newCat=categoryRepository.save(newCategory);
+        Category newCategory = mapToEntity(category);
+        if (newCategory.getId() == null) {
+            newCategory.setId(categoryRepository.findMaxId() + 1);
+        }
+        if (newCategory.getActive() == null) {
+            newCategory.setActive(true);
+        }
+        Category newCat = categoryRepository.save(newCategory);
         return mapToDto(newCat);
     }
 
@@ -46,8 +52,9 @@ public class CategoryService {
 
     public CategoryUpdateResponseDto updateCategory(CategoryUpdateRequestDto categoryUpdateRequestDto, Long id) {
         Category c=categoryRepository.findById(id).orElseThrow();
-        c.setName(categoryUpdateRequestDto.getName());
-        c.setDescription(categoryUpdateRequestDto.getDescription());
+        if (categoryUpdateRequestDto.getName() != null) c.setName(categoryUpdateRequestDto.getName());
+        if (categoryUpdateRequestDto.getDescription() != null) c.setDescription(categoryUpdateRequestDto.getDescription());
+        if (categoryUpdateRequestDto.getImageUrl() != null) c.setImageUrl(categoryUpdateRequestDto.getImageUrl());
         Category cat=categoryRepository.save(c);
 
         return  mapToUpdateDto(cat);
@@ -57,6 +64,7 @@ public class CategoryService {
         catResponse.setId(newCategory.getId());
         catResponse.setName(newCategory.getName());
         catResponse.setDescription(newCategory.getDescription());
+        catResponse.setImageUrl(newCategory.getImageUrl());
         return catResponse;
     }
 
@@ -65,6 +73,7 @@ public class CategoryService {
         Category newCat=new Category();
         newCat.setName(categoryRequestDto.getName());
         newCat.setDescription(categoryRequestDto.getDescription());
+        newCat.setImageUrl(categoryRequestDto.getImageUrl());
 
         return newCat;
     }
@@ -74,6 +83,7 @@ public class CategoryService {
         cat.setId(c.getId());
         cat.setName(c.getName());
         cat.setDescription(c.getDescription());
+        cat.setImageUrl(c.getImageUrl());
         cat.setUpdatedAt(LocalDateTime.now());
         return cat;
     }

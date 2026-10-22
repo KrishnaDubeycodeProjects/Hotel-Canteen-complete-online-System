@@ -9,6 +9,7 @@ import lombok.NoArgsConstructor;
 @NoArgsConstructor
 @AllArgsConstructor
 public class PaymentRequestDTO {
+    private Long orderId;
     private Long total_amount;
-    private Payment_method paymentMethod;
+    private Payment_method paymentMethod = Payment_method.UPI;
 }

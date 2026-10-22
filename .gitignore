@@ -33,3 +33,4 @@ build/
 **/demo
 .gitignore
 src/main/java/com/example/demo/**
+uploads/

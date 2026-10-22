@@ -11,4 +11,6 @@ import org.springframework.stereotype.Repository;
  */
 @Repository
 public interface PayementRepository extends JpaRepository<Payment, Long> {
+    @org.springframework.data.jpa.repository.Query("SELECT COALESCE(MAX(p.id), 0) FROM Payment p")
+    Long findMaxId();
 }

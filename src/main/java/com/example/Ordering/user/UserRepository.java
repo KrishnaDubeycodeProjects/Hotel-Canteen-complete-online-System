@@ -10,4 +10,9 @@ import java.util.Optional;
 public interface UserRepository extends JpaRepository<User, Integer> {
     Optional<User> findByEmail(String email);
     boolean existsByEmail(String email);
+    Optional<User> findByPhoneNumber(String phoneNumber);
+    boolean existsByPhoneNumber(String phoneNumber);
+
+    @org.springframework.data.jpa.repository.Query("SELECT COALESCE(MAX(u.id), 0) FROM User u")
+    Integer findMaxId();
 }

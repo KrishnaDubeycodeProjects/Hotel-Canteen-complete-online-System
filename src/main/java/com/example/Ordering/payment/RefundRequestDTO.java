@@ -8,6 +8,7 @@ import lombok.NoArgsConstructor;
 @NoArgsConstructor
 @AllArgsConstructor
 public class RefundRequestDTO {
+    private Long orderId;
     private Long amount;
     private String reason;
 }

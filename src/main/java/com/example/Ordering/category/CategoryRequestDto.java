@@ -10,4 +10,5 @@ import lombok.NoArgsConstructor;
 public class CategoryRequestDto {
     private String name;
     private String description;
+    private String imageUrl;
 }

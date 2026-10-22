@@ -15,4 +15,7 @@ public interface CouponRepository extends JpaRepository<Coupon, Long> {
     List<Coupon> findByActiveTrue();
 
     List<Coupon> findByExpiryBefore(LocalDateTime now);
+
+    @org.springframework.data.jpa.repository.Query("SELECT COALESCE(MAX(c.couponId), 0) FROM Coupon c")
+    Long findMaxId();
 }

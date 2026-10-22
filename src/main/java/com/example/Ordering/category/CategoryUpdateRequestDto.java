@@ -12,5 +12,5 @@ import java.time.LocalDateTime;
 public class CategoryUpdateRequestDto {
     private String name;
     private String description;
-//    private LocalDateTime updatedAt;
+    private String imageUrl;
 }

@@ -1,28 +1,38 @@
 package com.example.Ordering.coupon;
 
-import jakarta.persistence.Entity;
-import jakarta.persistence.Id;
+import jakarta.persistence.*;
+import lombok.AllArgsConstructor;
+import lombok.Data;
+import lombok.NoArgsConstructor;
 
 import java.time.LocalDateTime;
 
 @Entity
+@Data
+@NoArgsConstructor
+@AllArgsConstructor
 public class Coupon {
     @Id
     private Long couponId;
+
+    @Column(unique = true, nullable = false)
     private String couponCode;
-    private Discount_Type discountType;
-    private long discountValue;
-    private Long minimumOrder;
 
-    private LocalDateTime startAt;
+    private Discount_Type discountType = Discount_Type.FLAT;
+
+    private Long discountValue;
+    private Long upto;
+    private Long minimumOrder = 0L;
+
+    private LocalDateTime startAt = LocalDateTime.now();
     private LocalDateTime expiry;
-    private boolean active;
 
-    private Long totalDiscountBudget;
-    private Long numberOfToken;
-    // maximum should be total / number and  if percentage is there
-    // then like 50% upto 80rs like that coupon becomes
+    @Column(name = "active")
+    private boolean active = true;
 
+    @Column(name = "is_active")
+    private boolean isActive = true;
 
-
+    private Long count = 0L;
+    private Long numberOfToken = 1000L;
 }

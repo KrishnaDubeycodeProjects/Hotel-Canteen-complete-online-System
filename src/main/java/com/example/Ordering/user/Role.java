@@ -1,6 +1,8 @@
 package com.example.Ordering.user;
 
 public enum Role {
+    USER,
     ADMIN,
-    USER
+    CHEF,
+    WAITER
 }
